@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/group.dart';
 import '../providers/group_provider.dart';
-import '../providers/expense_provider.dart';
 import 'create_group_screen.dart';
 import 'group_detail_screen.dart';
 
@@ -13,9 +12,20 @@ class GroupsListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final groups = ref.watch(groupsNotifierProvider);
+    final currentGroupId = ref.watch(currentGroupNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Groups'), elevation: 0),
+      appBar: AppBar(
+        title: const Text('Groups'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              // Implement search functionality
+            },
+          ),
+        ],
+      ),
       body: groups.isEmpty
           ? const Center(
               child: Column(
@@ -36,135 +46,93 @@ class GroupsListScreen extends ConsumerWidget {
                 ],
               ),
             )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: groups.length,
-              itemBuilder: (context, index) {
-                final group = groups[index];
+          : RefreshIndicator(
+              onRefresh: () async {
+                // You could add refresh logic here if needed
+                ref.invalidate(groupsNotifierProvider);
+              },
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: groups.length,
+                itemBuilder: (context, index) {
+                  final group = groups[index];
+                  final isCurrentGroup = group.id == currentGroupId;
 
-                final totalExpenses = ref.watch(
-                  groupTotalExpensesProvider(group.id),
-                );
-
-                final balances = ref.watch(groupBalancesProvider(group.id));
-
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-                    leading: CircleAvatar(
-                      backgroundColor: _getGroupColor(group.type),
-                      child: Icon(group.type.icon, color: Colors.white),
-                    ),
-                    title: Text(
-                      group.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 4),
-                        Text(
-                          group.description.isNotEmpty
-                              ? group.description
-                              : 'No description available',
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.people,
-                              size: 16,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${group.memberIds.length} members',
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                            const SizedBox(width: 16),
-                            Icon(
-                              Icons.receipt,
-                              size: 16,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '\$${totalExpenses.toStringAsFixed(2)} total',
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    trailing: Tooltip(
-                      message: balances.isNotEmpty
-                          ? '${balances.length} debts pending'
-                          : 'All balances settled',
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (balances.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.orange[100],
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                '${balances.length} debt${balances.length == 1 ? '' : 's'}',
-                                style: TextStyle(
-                                  color: Colors.orange[800],
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    elevation: isCurrentGroup ? 4 : 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: isCurrentGroup
+                          ? BorderSide(
+                              color: Theme.of(context).primaryColor,
+                              width: 2,
                             )
-                          else
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
+                          : BorderSide.none,
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      leading: CircleAvatar(
+                        backgroundColor: _getGroupColor(group.type),
+                        child: Icon(group.type.icon, color: Colors.white),
+                      ),
+                      title: Text(
+                        group.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Text(
+                            group.description.isNotEmpty
+                                ? group.description
+                                : 'No description',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.people,
+                                size: 16,
+                                color: Colors.grey[600],
                               ),
-                              decoration: BoxDecoration(
-                                color: Colors.green[100],
-                                borderRadius: BorderRadius.circular(12),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${group.memberIds.length} members',
+                                style: TextStyle(color: Colors.grey[600]),
                               ),
-                              child: Text(
-                                'Settled',
-                                style: TextStyle(
-                                  color: Colors.green[800],
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
+                            ],
+                          ),
                         ],
                       ),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      onTap: () {
+                        ref
+                            .read(currentGroupNotifierProvider.notifier)
+                            .setCurrentGroup(group.id);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                GroupDetailScreen(groupId: group.id),
+                          ),
+                        );
+                      },
                     ),
-                    onTap: () {
-                      ref
-                          .read(currentGroupNotifierProvider.notifier)
-                          .setCurrentGroup(group.id);
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              GroupDetailScreen(groupId: group.id),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          HapticFeedback.lightImpact();
-          Navigator.of(context).push(
+          Navigator.push(
+            context,
             MaterialPageRoute(builder: (context) => const CreateGroupScreen()),
           );
         },

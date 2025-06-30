@@ -15,6 +15,7 @@ class ExpenseTrackerApp extends StatelessWidget {
       title: 'Expense Tracker',
       theme: ThemeData(primarySwatch: Colors.teal, useMaterial3: true),
       home: const HomeScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
