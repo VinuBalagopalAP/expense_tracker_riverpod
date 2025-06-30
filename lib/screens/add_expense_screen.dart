@@ -66,7 +66,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Amount',
                   border: OutlineInputBorder(),
-                  prefixText: '\$ ',
+                  prefixText: '₹ ',
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -162,7 +162,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       splitBetween: _selectedParticipants.toList(),
       date: DateTime.now(),
       splitType: _splitType,
-      groupId: '',
+      groupId: '', // Assuming groupId is passed to the widget
     );
 
     ref.read(expensesNotifierProvider.notifier).addExpense(expense);

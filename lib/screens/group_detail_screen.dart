@@ -47,7 +47,7 @@ class GroupDetailScreen extends ConsumerWidget {
             children: [
               Text(group.name),
               Text(
-                '\$${totalExpenses.toStringAsFixed(2)} total',
+                '₹${totalExpenses.toStringAsFixed(2)} total',
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],

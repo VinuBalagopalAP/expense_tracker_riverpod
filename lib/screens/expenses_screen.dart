@@ -50,7 +50,7 @@ class ExpensesScreen extends ConsumerWidget {
             leading: CircleAvatar(
               backgroundColor: Colors.teal,
               child: Text(
-                '\$${expense.amount.toStringAsFixed(0)}',
+                '₹${expense.amount.toStringAsFixed(0)}',
                 style: const TextStyle(color: Colors.white, fontSize: 12),
               ),
             ),
@@ -69,7 +69,7 @@ class ExpensesScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '\$${expense.amount.toStringAsFixed(2)}',
+                  '₹${expense.amount.toStringAsFixed(2)}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
@@ -108,7 +108,7 @@ class ExpensesScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Total Amount: \$${expense.amount.toStringAsFixed(2)}'),
+              Text('Total Amount: ₹${expense.amount.toStringAsFixed(2)}'),
               Text('Paid by: ${paidByUser.name}'),
               Text(
                 'Date: ${expense.date.day}/${expense.date.month}/${expense.date.year}',
@@ -131,9 +131,7 @@ class ExpensesScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(user.name),
-                      Text(
-                        '\$${shares[user.id]?.toStringAsFixed(2) ?? "0.00"}',
-                      ),
+                      Text('₹${shares[user.id]?.toStringAsFixed(2) ?? "0.00"}'),
                     ],
                   ),
                 ),

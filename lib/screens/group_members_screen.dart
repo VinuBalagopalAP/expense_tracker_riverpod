@@ -148,7 +148,7 @@ class GroupMembersScreen extends ConsumerWidget {
             Text(member.email.isNotEmpty ? member.email : 'No Email Provided'),
             const SizedBox(height: 4),
             Text(
-              '$memberExpenses expenses • \$${totalPaid.toStringAsFixed(2)} paid',
+              '$memberExpenses expenses • ₹${totalPaid.toStringAsFixed(2)} paid',
               style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
           ],

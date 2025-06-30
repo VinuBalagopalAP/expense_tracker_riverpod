@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import '../models/balance.dart';
 import '../models/group.dart';
 import '../models/user.dart';
-import '../providers/expense_provider.dart';
+import '../providers/balance_provider.dart';
 import '../providers/group_provider.dart';
 import '../providers/user_provider.dart';
 
@@ -15,163 +15,271 @@ class AllBalancesScreen extends ConsumerWidget {
     final groups = ref.watch(groupsNotifierProvider);
     final users = ref.watch(usersNotifierProvider);
 
-    if (groups.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.group, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'No groups yet',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Create a group to start tracking balances',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      itemCount: groups.length,
-      itemBuilder: (context, index) {
-        final group = groups[index];
-        final balances = ref.watch(groupBalancesProvider(group.id));
-
-        return Card(
-          margin: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildGroupHeader(group, balances),
-              if (balances.isNotEmpty)
-                ...balances.map((balance) => _buildBalanceTile(balance, users))
-              else
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(
-                    child: Text(
-                      'All settled up! 🎉',
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('All Balances'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.invalidate(groupsNotifierProvider);
+              ref.invalidate(usersNotifierProvider);
+            },
           ),
-        );
-      },
+        ],
+      ),
+      body: groups.isEmpty
+          ? const Center(child: EmptyGroupsState())
+          : ListView.builder(
+              itemCount: groups.length,
+              itemBuilder: (context, groupIndex) {
+                final group = groups[groupIndex];
+                final balances = ref.watch(groupBalancesProvider(group.id));
+
+                return GroupBalanceCard(
+                  group: group,
+                  balances: balances,
+                  users: users,
+                );
+              },
+            ),
     );
   }
+}
 
-  Widget _buildGroupHeader(Group group, List<dynamic> balances) {
+class GroupBalanceCard extends StatelessWidget {
+  final Group group;
+  final List<Balance> balances;
+  final List<User> users;
+
+  const GroupBalanceCard({
+    super.key,
+    required this.group,
+    required this.balances,
+    required this.users,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Filter only balances where amount != 0
+    final nonZeroBalances = balances.where((b) => b.amount != 0).toList();
+
+    return Card(
+      margin: const EdgeInsets.all(12),
+      elevation: 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GroupHeader(group: group, balanceCount: nonZeroBalances.length),
+          if (nonZeroBalances.isNotEmpty)
+            ...nonZeroBalances.map(
+              (balance) => BalanceTile(balance: balance, users: users),
+            ),
+          if (nonZeroBalances.isEmpty) const SettledStatusIndicator(),
+        ],
+      ),
+    );
+  }
+}
+
+class GroupHeader extends StatelessWidget {
+  final Group group;
+  final int balanceCount;
+
+  const GroupHeader({
+    super.key,
+    required this.group,
+    required this.balanceCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _getGroupColor(group.type).withValues(alpha: 0.1),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(8),
-          topRight: Radius.circular(8),
-        ),
+        color: group.type.color.withValues(alpha: 0.1),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
       ),
       child: Row(
         children: [
-          Icon(group.type.icon, color: _getGroupColor(group.type)),
-          const SizedBox(width: 8),
+          Icon(group.type.icon, color: group.type.color),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   group.name,
-                  style: const TextStyle(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   '${group.memberIds.length} members',
-                  style: TextStyle(color: Colors.grey[600]),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                 ),
               ],
             ),
           ),
-          if (balances.isEmpty)
-            _buildStatusBadge('Settled', Colors.green)
-          else
-            _buildStatusBadge(
-              '${balances.length} debt${balances.length == 1 ? '' : 's'}',
-              Colors.orange,
-            ),
+          BalanceStatusBadge(isSettled: balanceCount == 0, count: balanceCount),
         ],
       ),
     );
   }
+}
 
-  Widget _buildStatusBadge(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white, fontSize: 12),
-      ),
-    );
-  }
+class BalanceTile extends StatelessWidget {
+  final Balance balance;
+  final List<User> users;
 
-  Widget _buildBalanceTile(dynamic balance, List<User> users) {
+  const BalanceTile({super.key, required this.balance, required this.users});
+
+  @override
+  Widget build(BuildContext context) {
     final user1 = users.firstWhere(
       (user) => user.id == balance.userId1,
-      orElse: () => User(id: '', name: 'Unknown', email: ''),
+      orElse: () => User(id: '', name: '', email: ''),
     );
     final user2 = users.firstWhere(
       (user) => user.id == balance.userId2,
-      orElse: () => User(id: '', name: 'Unknown', email: ''),
+      orElse: () => User(id: '', name: '', email: ''),
     );
 
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Colors.orange,
-        radius: 16,
-        child: Text(
-          user1.name.isNotEmpty ? user1.name[0].toUpperCase() : '?',
-          style: const TextStyle(color: Colors.white, fontSize: 12),
-        ),
-      ),
-      title: Text(
-        '${user1.name} owes ${user2.name}',
-        style: const TextStyle(fontSize: 14),
-      ),
-      trailing: Text(
-        '\$${balance.amount.toStringAsFixed(2)}',
-        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+    final isPositive = balance.amount > 0;
+    final amountText = '₹${balance.amount.abs().toStringAsFixed(2)}';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          const Divider(height: 1),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(vertical: 8),
+            leading: UserAvatar(user: isPositive ? user1 : user2),
+            title: Text(
+              isPositive
+                  ? '${user2.name} owes ${user1.name}'
+                  : '${user1.name} owes ${user2.name}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            trailing: Text(
+              amountText,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isPositive ? Colors.green : Colors.red,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+}
 
-  Color _getGroupColor(GroupType? type) {
-    switch (type) {
-      case GroupType.general:
-        return Colors.blue;
-      case GroupType.trip:
-        return Colors.purple;
-      case GroupType.home:
-        return Colors.green;
-      case GroupType.couple:
-        return Colors.pink;
-      case GroupType.other:
-        return Colors.grey;
-      default:
-        return Colors.grey;
-    }
+class UserAvatar extends StatelessWidget {
+  final User user;
+
+  const UserAvatar({super.key, required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    return CircleAvatar(
+      backgroundColor: Colors.blue[100],
+      radius: 20,
+      child: Text(
+        user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+        style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+}
+
+class BalanceStatusBadge extends StatelessWidget {
+  final bool isSettled;
+  final int count;
+
+  const BalanceStatusBadge({
+    super.key,
+    required this.isSettled,
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: isSettled ? Colors.green[100] : Colors.orange[100],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        isSettled ? 'Settled' : '$count debt${count == 1 ? '' : 's'}',
+        style: TextStyle(
+          color: isSettled ? Colors.green[800] : Colors.orange[800],
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+class SettledStatusIndicator extends StatelessWidget {
+  const SettledStatusIndicator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 8),
+            Text(
+              'All settled up!',
+              style: TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class EmptyGroupsState extends StatelessWidget {
+  const EmptyGroupsState({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.group, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'No groups yet',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Create a group to start tracking balances',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+          ),
+        ],
+      ),
+    );
   }
 }

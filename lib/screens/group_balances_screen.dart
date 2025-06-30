@@ -83,7 +83,7 @@ class GroupBalancesScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '\$${balance.amount.toStringAsFixed(2)}',
+                  '₹${balance.amount.toStringAsFixed(2)}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: balance.amount > 0 ? Colors.red : Colors.green,
@@ -112,7 +112,7 @@ class GroupBalancesScreen extends ConsumerWidget {
       builder: (context) => AlertDialog(
         title: const Text('Settle Up'),
         content: Text(
-          '${user1.name} owes ${user2.name} \$${balance.amount.toStringAsFixed(2)}',
+          '${user1.name} owes ${user2.name} ₹${balance.amount.toStringAsFixed(2)}',
         ),
         actions: [
           TextButton(

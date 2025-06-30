@@ -75,7 +75,7 @@ class AllExpensesScreen extends ConsumerWidget {
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    '\$${totalForDay.toStringAsFixed(2)}',
+                    '₹${totalForDay.toStringAsFixed(2)}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -104,7 +104,7 @@ class AllExpensesScreen extends ConsumerWidget {
                   leading: CircleAvatar(
                     backgroundColor: Colors.teal,
                     child: Text(
-                      '\$${expense.amount.toStringAsFixed(0)}',
+                      '₹${expense.amount.toStringAsFixed(0)}',
                       style: const TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),
@@ -120,7 +120,7 @@ class AllExpensesScreen extends ConsumerWidget {
                     ],
                   ),
                   trailing: Text(
-                    '\$${expense.amount.toStringAsFixed(2)}',
+                    '₹${expense.amount.toStringAsFixed(2)}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   onTap: () =>
@@ -171,7 +171,7 @@ class AllExpensesScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Group: ${group.name}'),
-              Text('Total Amount: \$${expense.amount.toStringAsFixed(2)}'),
+              Text('Total Amount: ₹${expense.amount.toStringAsFixed(2)}'),
               Text('Paid by: ${paidByUser.name}'),
               Text(
                 'Date: ${expense.date.day}/${expense.date.month}/${expense.date.year}',
@@ -192,9 +192,7 @@ class AllExpensesScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(user.name),
-                      Text(
-                        '\$${shares[user.id]?.toStringAsFixed(2) ?? "0.00"}',
-                      ),
+                      Text('₹${shares[user.id]?.toStringAsFixed(2) ?? "0.00"}'),
                     ],
                   ),
                 ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/group.dart';
 import '../providers/group_provider.dart';
-import 'create_group_screen.dart';
+
 import 'group_detail_screen.dart';
 
 class GroupsListScreen extends ConsumerWidget {
@@ -16,7 +16,6 @@ class GroupsListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Groups'),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -129,15 +128,6 @@ class GroupsListScreen extends ConsumerWidget {
                 },
               ),
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CreateGroupScreen()),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
     );
   }
 

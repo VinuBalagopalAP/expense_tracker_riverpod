@@ -53,7 +53,7 @@ class GroupExpensesScreen extends ConsumerWidget {
             leading: CircleAvatar(
               backgroundColor: Colors.teal,
               child: Text(
-                '\$${expense.amount.toStringAsFixed(0)}',
+                '₹${expense.amount.toStringAsFixed(0)}',
                 style: const TextStyle(color: Colors.white, fontSize: 12),
               ),
             ),
@@ -81,7 +81,7 @@ class GroupExpensesScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '\$${expense.amount.toStringAsFixed(2)}',
+                  '₹${expense.amount.toStringAsFixed(2)}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
@@ -121,7 +121,7 @@ class GroupExpensesScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Total Amount: \$${expense.amount.toStringAsFixed(2)}',
+                'Total Amount: ₹${expense.amount.toStringAsFixed(2)}',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -145,7 +145,7 @@ class GroupExpensesScreen extends ConsumerWidget {
                     children: [
                       Text(user.name),
                       Text(
-                        '\$${shares[user.id]?.toStringAsFixed(2) ?? "0.00"}',
+                        '₹${shares[user.id]?.toStringAsFixed(2) ?? "0.00"}',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],

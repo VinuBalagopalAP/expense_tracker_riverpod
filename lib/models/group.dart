@@ -119,3 +119,19 @@ extension GroupTypeExtension on GroupType {
     }
   }
 }
+extension GroupTypeColorExtension on GroupType {
+  Color get color {
+    switch (this) {
+      case GroupType.general:
+        return Colors.blue;
+      case GroupType.trip:
+        return Colors.green;
+      case GroupType.home:
+        return Colors.orange;
+      case GroupType.couple:
+        return Colors.pink;
+      case GroupType.other:
+        return Colors.grey;
+    }
+  }
+}

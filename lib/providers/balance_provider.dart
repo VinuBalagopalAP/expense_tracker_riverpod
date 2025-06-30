@@ -54,8 +54,27 @@ List<Balance> groupBalances(ref, String groupId) {
       .watch(groupsNotifierProvider)
       .firstWhere((g) => g.id == groupId, orElse: () => Group.empty());
 
-  final balanceNotifier = ref.read(balanceNotifierProvider.notifier);
-  balanceNotifier.updateBalances(expenses, group);
+  // Calculate balances directly instead of using the notifier
+  final Map<String, double> balances = {};
 
-  return ref.watch(balanceNotifierProvider);
+  for (final expense in expenses) {
+    final shares = expense.getIndividualShares();
+
+    for (final userId in shares.keys) {
+      balances[userId] = (balances[userId] ?? 0) - shares[userId]!;
+    }
+
+    balances[expense.paidBy] = (balances[expense.paidBy] ?? 0) + expense.amount;
+  }
+
+  return balances.entries
+      .map(
+        (entry) => Balance(
+          userId1: entry.key,
+          userId2: '', // Can be extended for specific pair balances
+          amount: entry.value,
+          groupId: group.id,
+        ),
+      )
+      .toList();
 }
