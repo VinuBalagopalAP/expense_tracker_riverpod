@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/expense.dart';
 import '../models/balance.dart';
 import '../models/group.dart';
+import '../models/user.dart';
 import 'user_provider.dart';
 import 'group_provider.dart';
 
@@ -41,7 +42,7 @@ List<Balance> groupBalances(ref, String groupId) {
   final group = ref
       .watch(groupsNotifierProvider)
       .firstWhere((g) => g.id == groupId, orElse: () => Group.empty());
-  final users = ref.watch(usersNotifierProvider);
+  final List<User> users = ref.watch(usersNotifierProvider);
   final groupUsers = users
       .where((user) => group.memberIds.contains(user.id))
       .toList();
